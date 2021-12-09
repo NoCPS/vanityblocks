@@ -1,0 +1,24 @@
+{
+  "name": "VanityBlock #1 - Genosis",
+  "description": "bal bla bla description",
+  "image": "https://cryptobullsociety.com/images/1.png",
+  "external_url": "https://cryptobullsociety.com",
+  "attributes": [
+    {
+      "trait_type": "Block Number",
+      "value": "1231231231"
+    },
+    {
+      "trait_type": "One Of In Block",
+      "value": "1"
+    },
+    {
+      "trait_type": "Approx Mint Cost",
+      "value": "123Ξ"
+    },
+    {
+      "trait_type": "Has Extra Data",
+      "value": "YE"
+    }
+  ]
+}
