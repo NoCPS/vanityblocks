@@ -7,7 +7,7 @@ const hre = require("hardhat");
 const {network} = require("hardhat");
 const math = require('mathjs');
 const fs = require('fs');
-import { ethers } from 'ethers';
+const ethers = require('ethers');
 
 
 async function main() {
@@ -16,57 +16,41 @@ async function main() {
 
     const provider = new ethers.providers.JsonRpcBatchProvider('https://mainnet.infura.io/v3/f5fbbc46013e4a88b248c5a55c353d52')
 
-    for (let i = 0; i < 100000; i++) {
-        console.log(data[i]);
+    console.log(data.length);
 
+    const queriesIn1Go = 300;
 
-        let b = await provider.getBlockWithTransactions(parseInt(data[i]));
-        let tr = await provider.getTransactionReceipt(b.transactions[0].hash);
+    for (let i = 1614; i < data.length / queriesIn1Go; i++) {
+        console.log(i, data[i * queriesIn1Go]);
 
+        let ps = [];
 
-        if (tr.logs.length > 0)
-            console.log(tr);
+        for (let i2 = i * queriesIn1Go; i2 < (i + 1) * queriesIn1Go; i2++) {
+            ps.push(provider.getBlockWithTransactions(parseInt(data[i2])));
+        }
 
+        let res = await Promise.all(ps);
+
+        ps = [];
+
+        for (let i2 = 0; i2 < queriesIn1Go; i2++) {
+            ps.push(provider.getTransactionReceipt(res[i2].transactions[0].hash));
+        }
+
+        res = await Promise.all(ps);
+
+        for (let i2 = 0; i2 < queriesIn1Go; i2++) {
+
+            for (let i3 = 0; i3 < res[i2].logs.length; i3++) {
+                if ((4 == res[i2].logs[i3].topics.length) &&
+                ("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef" == res[i2].logs[i3].topics[0])) {
+                        console.log(res[i2].transactionHash);
+                }
+            }
+        }
     }
     return;
-    // Hardhat always runs the compile task when running scripts with its command
-    // line interface.
-    //
-    // If this script is run directly using `node` you may want to call compile
-    // manually to make sure everything is compiled
-    // await hre.run('compile');
 
-    // We get the contract to deploy
-
-    console.log("starting deploy script");
-
-    const Greeter = await hre.ethers.getContractFactory("logTester");
-    /*
-    const greeter = await Greeter.deploy({gasPrice: 3 * 10 ** 9, gasLimit: 168157});
-
-    await greeter.deployed();
-    */
-    const greeter = await Greeter.attach("0x154d83E31037BaFeA4459127928003A05B3a14D2");
-
-    const latestBlockNumber = await hre.ethers.provider.getBlockNumber();
-
-    console.log(latestBlockNumber);
-
-    console.log();
-    console.log(await hre.ethers.provider.getTransactionReceipt("0x0db79bd3c4ad4056cbe8d77d4ba38669741d0c78aff02d3329cabb813336cd92"));
-    return;
-
-    let gl = (await hre.ethers.provider.getBlock(latestBlockNumber)).gasLimit;
-
-    console.log(gl);
-
-    let t = await greeter.check({gasLimit: math.floor(gl - gl / 1024), gasPrice: 3 * 10 ** 10});
-
-    console.log(t);
-
-    let tr = await t.wait();
-    console.log(tr);
-    console.log(tr.events[0].args);
 
 }
 
